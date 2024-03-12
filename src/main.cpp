@@ -51,27 +51,30 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
         // Check if c is a space char and if it's then push back a token
         if ((std::isspace(c) != 0)) {
 
-            if (val == "") {}
-            else if (val.compare("if") == 0) {
+            if (val.compare("if") == 0) {
                 TokenRecord tk = {.tokenval=TokenType::IF, .Attribute=val};
                 tokens.push_back(tk);
                 val.clear();
-            } else if (val.compare("=") == 0) {
+            } 
+            else if (val.compare("=") == 0) {
                 TokenRecord tk = {.tokenval=TokenType::EQUAL, .Attribute=val};
                 tokens.push_back(tk);
                 val.clear();
-            } else if (std::isalpha(val.at(0)) != 0) {
+            } 
+            else if (std::isalpha(val.at(0)) != 0) {
                 TokenRecord tk = {.tokenval=TokenType::ID, .Attribute=val};
                 tokens.push_back(tk);
                 val.clear();
-            } else {
+            } 
+            else {
                 int point = val.find(".");
                 
                 if (point == -1) {
                     TokenRecord tk = {.tokenval=TokenType::INT, .Attribute=std::stoi(val)};
                     tokens.push_back(tk);
                     val.clear();
-                } else {
+                } 
+                else {
                     TokenRecord tk = {.tokenval=TokenType::FLOAT, .Attribute=std::stof(val)};
                     tokens.push_back(tk);
                     val.clear();
@@ -81,8 +84,8 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
         } 
         // If it's a space character then push c to the val string
         else {
-        val.push_back(c);
-}
+            val.push_back(c);
+        }
 
         eat<std::string>(str);
     }
