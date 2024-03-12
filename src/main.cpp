@@ -23,12 +23,16 @@ typedef struct {
 } TokenRecord;
 
 template<class Type>
-void eat(Type &tensor) {
+bool eat(Type &tensor) {
     std::string tname = typeid(Type).name();
 
-    if ((tname.compare(typeid(std::string).name()) != 0) or (tname.compare(typeid(std::vector<TokenRecord>).name()) != 0)) {
+    if (tensor.size() == 0) return false;
+
+    if (((tname.compare(typeid(std::string).name()) != 0) or (tname.compare(typeid(std::vector<TokenRecord>).name()) != 0)) and tensor.size() > 0) {
         tensor = Type{tensor.begin() + 1, tensor.end()};
     }
+
+    return true;
 }
 
 std::vector<TokenRecord> tokenize(const char file_name[]) {
@@ -39,15 +43,80 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
     {
         std::stringstream str_stream;
         str_stream << std::ifstream(file_name).rdbuf();
-        str = str_stream.str() + " /eof";
+        str = str_stream.str() + "";
     }
     
-    std::string val = "";
+    std::vector<std::string> parts;
 
-    while (true) {
+    while (str != "") {
+        std::string val = "";
         if (str.size() == 0) break;
+        if (std::isspace(str.at(0)) != 0) eat<std::string>(str);
         char c = str.at(0);
+        bool point = false;
+
+        if (std::isalpha(c) != 0) {
+            eat<std::string>(str);   
+        }
+        c = str.at(0);
+        if (c == '=') eat<std::string>(str);
+        c = str.at(0);
         
+        std::cout << c << std::endl;
+
+        // Get a number
+        while (std::isdigit(c) != 0) {
+            val.push_back(c);
+            std::cout << "val: " << val << " " << str.size() << std::endl;           //std::cout << c;
+            eat<std::string>(str);
+            //if (str.at(0) == ';') break;
+
+            if ((str.at(0) == '.') and (point == false)) {
+                val.push_back(str.at(0));
+                eat<std::string>(str);
+                point = true;
+            }
+            
+            c = str.at(0);
+
+        }
+        if (val.compare("") != 0) parts.push_back(val);
+        val.clear();
+        // Get a ID
+        /*
+        while (std::isalpha(c) != 0) {
+            val.push_back(c);
+            eat<std::string>(str);
+            //if (str.at(0) == ';') break;
+
+            while ((std::isdigit(str.at(0) != 0) or (str.at(0) == '_'))) {
+                if (str.at(0) == ' ') break;
+                val.push_back(str.at(0));
+                eat<std::string>(str);
+            }
+
+            c = str.at(0);
+        }
+        if (val.compare("") != 0) parts.push_back(val);
+        val.clear();*/
+
+        /*if (c == '=') {
+            parts.push_back("=");
+            eat<std::string>(str);
+            c = str.at(0);
+        }*/
+        
+        /*for (auto s : parts) {
+            std::cout << "s: " << s << std::endl;
+        }*/
+    }   
+    std::cout << "ERROR" << std::endl;
+    
+    /*
+    while (parts.size() > 0) {
+        std::string val = parts.at(0);
+        std::cout << "Val: " << val << std::endl;
+
         // Check if c is a space char and if it's then push back a token
         if (val.compare("if") == 0) {
             TokenRecord tk = {.tokenval=TokenType::IF, .Attribute=val};
@@ -61,7 +130,7 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
             TokenRecord tk = {.tokenval=TokenType::ID, .Attribute=val};
             tokens.push_back(tk);
             val.clear();
-        } else {
+        } else if (std::isdigit(val.at(0) != 0)) {
             int point = val.find(".");
             
             if (point == -1) {
@@ -75,11 +144,8 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
             }
         }
 
-        // If it's a space character then push c to the val string
-        val.push_back(c);
-
-        eat<std::string>(str);
-    }
+        eat<std::vector<std::string>>(parts);
+    }*/
 
     return tokens;
 }
@@ -95,7 +161,7 @@ int main(int argc, char *argv[]) {
         std::cout << "You din't select a file!" << std::endl;
         std::cout << "PROJECT_NAME <file name>" << std::endl;
     }
-    std::cout << "{ ";
+    /*std::cout << "{ ";
     for (auto tk : tokens) {
         switch (tk.tokenval) {
             case TokenType::ID:
@@ -115,7 +181,7 @@ int main(int argc, char *argv[]) {
                 break;
         }
     }
-    std::cout << " }" << std::endl;
+    std::cout << " }" << std::endl;*/
 
     
     return 0;
