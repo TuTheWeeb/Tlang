@@ -18,17 +18,21 @@ enum class TokenType {
 };
 
 typedef struct {
-    TokenType tokenval = TokenType::ID;
+    TokenType tokenval;
     boost::variant<int, float, std::string> Attribute;
 } TokenRecord;
 
 template<class Type>
-void eat(Type &tensor) {
+bool eat(Type &tensor) {
     std::string tname = typeid(Type).name();
 
-    if ((tname.compare(typeid(std::string).name()) != 0) or (tname.compare(typeid(std::vector<TokenRecord>).name()) != 0)) {
+    if (((tname.compare(typeid(std::string).name()) != 0) or (tname.compare(typeid(std::vector<TokenRecord>).name()) != 0))) {
         tensor = Type{tensor.begin() + 1, tensor.end()};
     }
+    
+    if (tensor.size() == 0) return true;
+
+    return false;
 }
 
 std::vector<TokenRecord> tokenize(const char file_name[]) {
@@ -39,7 +43,7 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
     {
         std::stringstream str_stream;
         str_stream << std::ifstream(file_name).rdbuf();
-        str = str_stream.str() + " /eof";
+        str = str_stream.str();
     }
     
     std::string val = "";
@@ -47,47 +51,73 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
     while (true) {
         if (str.size() == 0) break;
         char c = str.at(0);
+        bool cond = true;
+
+        if (std::isspace(c) != 0) eat(str);
         
-        // Check if c is a space char and if it's then push back a token
-        if ((std::isspace(c) != 0)) {
-
-            if (val.compare("if") == 0) {
-                TokenRecord tk = {.tokenval=TokenType::IF, .Attribute=val};
-                tokens.push_back(tk);
-                val.clear();
-            } 
-            else if (val.compare("=") == 0) {
-                TokenRecord tk = {.tokenval=TokenType::EQUAL, .Attribute=val};
-                tokens.push_back(tk);
-                val.clear();
-            } 
-            else if (std::isalpha(val.at(0)) != 0) {
-                TokenRecord tk = {.tokenval=TokenType::ID, .Attribute=val};
-                tokens.push_back(tk);
-                val.clear();
-            } 
-            else {
-                int point = val.find(".");
-                
-                if (point == -1) {
-                    TokenRecord tk = {.tokenval=TokenType::INT, .Attribute=std::stoi(val)};
-                    tokens.push_back(tk);
-                    val.clear();
-                } 
-                else {
-                    TokenRecord tk = {.tokenval=TokenType::FLOAT, .Attribute=std::stof(val)};
-                    tokens.push_back(tk);
-                    val.clear();
-                }
-            }
-
-        } 
-        // If it's a space character then push c to the val string
-        else {
+        if (std::isalpha(c) != 0) {
             val.push_back(c);
+            
+            // Eat Character and go out
+            if (eat(str)) goto token_add;
+            char k = str.at(0);
+
+            while ((std::isdigit(k) != 0) or (std::isalpha(k) != 0) or (k == '_')) {
+                val.push_back(k);
+
+                // Eat character and go out
+                if (eat(str)) goto token_add;
+                else k = str.at(0);
+            }
         }
 
-        eat<std::string>(str);
+        if (std::isdigit(c) != 0) {
+            val.push_back(c);
+
+            bool point = false;
+
+            // Eat Character and go out
+            if (eat(str)) goto token_add;
+            char k = str.at(0);
+
+            while ((std::isdigit(k) != 0) or (k == '.')) {
+                if (point == true) continue;
+                val.push_back(k);
+                
+                // Eat character and go out
+                if (eat(str)) goto token_add;
+                else k = str.at(0);
+            }
+        }
+ 
+
+        if (c == '=') {
+            val.push_back(c);
+            if(eat(str)) goto token_add;
+        }
+
+        token_add:
+        if (val.size() > 0) {
+            if (val.compare("if") == 0) {
+                tokens.push_back({.tokenval=TokenType::IF, .Attribute=val});
+            } 
+
+            else if (val.compare("=") == 0) {
+                tokens.push_back({.tokenval=TokenType::EQUAL, .Attribute=val});
+            }
+
+            else if (std::isalpha(val.at(0)) != 0) {
+                tokens.push_back({.tokenval=TokenType::ID, .Attribute=val});
+            }
+             
+            else if (std::isdigit(val.at(0)) != 0) {
+
+                int point = val.find('.');
+                if (point == -1) tokens.push_back({.tokenval=TokenType::INT, .Attribute=stoi(val)});
+                else tokens.push_back({.tokenval=TokenType::FLOAT, .Attribute=stof(val)});
+            }
+        }
+        val.clear();
     }
 
     return tokens;
