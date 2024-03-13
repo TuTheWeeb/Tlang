@@ -46,7 +46,7 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
         if (std::isspace(c) != 0) eat(str);
         
         // Check for names
-        if (std::isalpha(c) != 0) {
+        else if (std::isalpha(c) != 0) {
             val.push_back(c);
             
             // Eat Character and go out
@@ -63,7 +63,7 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
         }
 
         // Check for numbers
-        if (std::isdigit(c) != 0) {
+        else if (std::isdigit(c) != 0) {
             val.push_back(c);
 
             bool point = false;
@@ -81,30 +81,43 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
                 else k = str.at(0);
             }
         }
- 
 
-        if (c == '=') {
+        else if (c == '(') {
             val.push_back(c);
-            if(eat(str)) goto token_add;
+            eat(str);
+            goto token_add;
         }
 
-        if (is_binary_op(c)) {
+        else if (c == ')') {
+            val.push_back(c);
+            eat(str);
+            goto token_add;
+        }
+
+        else if (c == '{') {
+            val.push_back(c);
+            eat(str);
+            goto token_add;
+        }
+
+        else if (c == '}') {
+            val.push_back(c);
+            eat(str);
+            goto token_add;
+        }
+
+        else if (c == '=') {
+            val.push_back(c);
+            eat(str);
+            goto token_add;
+        }
+
+        else if (is_binary_op(c)) {
             val.push_back(c);
 
             // Eat Character and go out
-            //if (eat(str)) goto token_add;
             eat(str);
             goto token_add;
-            /*
-            else if (str.at(0) == '=') {
-                val.push_back(str.at(0));
-                eat(str);
-                goto token_add;
-            } 
-            
-            else {
-                goto token_add;
-            }*/
         }
 
         token_add:
@@ -132,6 +145,14 @@ std::vector<TokenRecord> tokenize(const char file_name[]) {
             else if (is_binary_op(val)) {
                 tokens.push_back({.tokenval=TokenType::BINARY_OPR, .Attribute=val});
             }
+
+            else if (val.compare("(") == 0) tokens.push_back({.tokenval=TokenType::OPEN_PAREN, .Attribute=val});
+
+            else if (val.compare(")") == 0) tokens.push_back({.tokenval=TokenType::CLOSE_PAREN, .Attribute=val});
+            
+            else if (val.compare("{") == 0) tokens.push_back({.tokenval=TokenType::OPEN_KEY, .Attribute=val});
+
+            else if (val.compare("}") == 0) tokens.push_back({.tokenval=TokenType::CLOSE_KEY, .Attribute=val});
         }
         val.clear();
     }

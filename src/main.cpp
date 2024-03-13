@@ -27,6 +27,18 @@ int main(int argc, char *argv[]) {
             case TokenType::BINARY_OPR:
                 std::cout << "[BINARY_OPR: " << tk.Attribute << "], ";
                 break;
+            case TokenType::OPEN_PAREN:
+                std::cout << "[OPEN_PAREN: " << tk.Attribute << "], ";
+                break;
+            case TokenType::CLOSE_PAREN:
+                std::cout << "[CLOSE_PAREN: " << tk.Attribute << "], ";
+                break;
+            case TokenType::OPEN_KEY:
+                std::cout << "[OPEN_KEY: " << tk.Attribute << "], ";
+                break;
+            case TokenType::CLOSE_KEY:
+                std::cout << "[CLOSE_KEY: " << tk.Attribute << "], ";
+                break;
             default:
                 std::cout << "[NONE: " << tk.Attribute << "], ";
                 break;

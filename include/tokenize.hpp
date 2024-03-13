@@ -12,12 +12,16 @@
 
 // TokenType
 enum class TokenType {
+    ID,
     IF,
     EQUAL,
+    OPEN_PAREN,
+    CLOSE_PAREN,
+    OPEN_KEY,
+    CLOSE_KEY,
     BINARY_OPR,
     INT,
-    FLOAT,
-    ID
+    FLOAT
 };
 
 // TokenRecord
