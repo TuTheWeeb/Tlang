@@ -4,9 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-    //"time"
-	//"unicode"
-	//"strings"
 )
 
 const (
@@ -73,12 +70,10 @@ func clean(file []byte) []byte {
 func write_output[T any](obj T) {
     file, _ := os.Create("output.tl");
     str := fmt.Sprintln(obj)
-    //fmt.Println(str)
     file.WriteString(str)
     file.Close()
 }
 
-//
 
 func is_num(val byte) bool {
     return val >= 48 && val <= 57
@@ -94,19 +89,12 @@ func buildTree(file []byte) Node {
     node := &Node{}
     prev := &Node{}
 
-    //printn(node, prev)
-
     for i := 0; i < len(file); i++ {
-        //prev = node
-        //node = Node{}
-        //node.Prev = &prev
          
         if is_num(file[i]) {
             node.item = file[i]
-            //node.item = int32(file[i])-48
         } else if file[i] > 37 {
             node.item = file[i]
-            //node.item = int32(file[i])
         }
 
         prev = node
@@ -117,14 +105,7 @@ func buildTree(file []byte) Node {
             node.Prev = prev
         }
 
-        //node.Prev = prev
-
-
-        //fmt.Println(*prev)
-        //fmt.Println(*node)
     }
-    //node = node.Prev
-    //node.Next = nil
 
     return goStart(*node)
 }
@@ -152,9 +133,6 @@ func goEnd(node Node) Node {
 }
 
 func printTree(node Node) {
-    //node = goStart(node);
-    
-    //fmt.Printf("Actual node: { Next: %p, Prev: %p, Item: %d } Address %p \n", node.Next, node.Prev, node.item, &node)
     fmt.Println(node.item)
 
     if node.Next != nil {
@@ -164,9 +142,6 @@ func printTree(node Node) {
 
 func main () {
     file := clean(get_file("main.tl"))
-
-    //fmt.Println(file)
-    //write_output(file)
 
     node := buildTree(file)
 
