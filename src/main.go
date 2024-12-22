@@ -7,9 +7,15 @@ import (
 )
 
 const (
-    NUM = 0
+    NUM = iota
     ADD
     SUB
+    MUL
+    DIV
+
+
+
+    ERR
 )
 
 type Token struct {
@@ -19,14 +25,13 @@ type Token struct {
 
 ////// Node
 type Node struct {
-    Next *Node;
-    Prev *Node;
-    item byte
+    Right *Node;
+    Left *Node;
+    Item Token
 }
 
-func Assing(node Node, item byte) Node {
-    node.item = item;
-    return node
+func Assing(node *Node, Type int8, VAL []byte) {
+    node.Item = Token{TYPE: Type, VAL: VAL};
 }
 //////
 
@@ -74,35 +79,77 @@ func write_output[T any](obj T) {
     file.Close()
 }
 
-
+//////
 func is_num(val byte) bool {
     return val >= 48 && val <= 57
 }
 
-func printn(node *Node, prev *Node) {
-    fmt.Println("")
-    fmt.Printf("Previous node: { Next: %p, Prev: %p, Item: %d } Address %p \n", prev.Next, prev.Prev, prev.item, prev)
-    fmt.Printf("Actual node: { Next: %p, Prev: %p, Item: %d } Address %p \n", node.Next, node.Prev, node.item, node)
+func is_op(val byte) bool {
+    return val == '+' ||  val == '-' ||  val == '*' ||  val == '/'
+}
+
+func get_op(val byte) int8 {
+    switch val {
+    case '+':
+        return ADD
+    case '-':
+        return SUB
+    case '*':
+        return MUL
+    case '/':
+        return DIV
+    default:
+        return ERR
+    }
+}
+
+func complete_num(file []byte) ([]byte, int32) {
+    num := make([]byte, 0)
+    var pos int32 = 0
+
+    for i := int32(0); i < int32(len(file)); i++ {
+        if is_num(file[i]) {
+            num = append(num, file[i])
+        } else {
+            pos = i
+            break
+        }
+    }
+
+    return num, pos
 }
 
 func buildTree(file []byte) Node {
     node := &Node{}
     prev := &Node{}
 
-    for i := 0; i < len(file); i++ {
-         
-        if is_num(file[i]) {
-            node.item = file[i]
-        } else if file[i] > 37 {
-            node.item = file[i]
+    for i := int32(0); i < int32(len(file)); i++ {
+        
+        // Generate the tokens
+        if is_num(file[i]) == true {
+            num, pos := []byte{}, int32(0)
+            num, pos = complete_num(file[i:])
+
+            if pos != 0 {
+                i += pos-1
+            }
+            
+            Assing(node, NUM, num)
+
+        } else if is_op(file[i]) {
+
+            Assing(node, get_op(file[i]), []byte{file[i]})
         }
 
+
+
+
+        // Conect the nodes
         prev = node
-        
-        if i + 1 != len(file) {
+        if i + 1 != int32(len(file)) {
             node = &Node{}
-            prev.Next = node
-            node.Prev = prev
+            prev.Right = node
+            node.Left = prev
         }
 
     }
@@ -111,10 +158,9 @@ func buildTree(file []byte) Node {
 }
 
 func goStart(node Node) Node {
-
     for i := 0; i > -1; {
-        if node.Prev != nil {
-            node = *node.Prev
+        if node.Left != nil {
+            node = *node.Left
             continue
         }
         break
@@ -124,27 +170,86 @@ func goStart(node Node) Node {
 }
 
 func goEnd(node Node) Node {
-
-    if node.Next != nil {
-        return goEnd(*node.Next)
+    for i := 0; i > -1; {
+        if node.Right != nil {
+            node = *node.Right
+            continue
+        }
+        break
     }
 
     return node
 }
 
-func printTree(node Node) {
-    fmt.Println(node.item)
+func printTree(node Node){
+    for i := 0; i > -1; {
+        fmt.Println(node)
 
-    if node.Next != nil {
-        printTree(*node.Next)
+        fmt.Println(node.Left)
+        if node.Right == nil {break}
+        node = *node.Right
     }
 }
+
+func extendOR(thing int8, list []int8) bool {
+    val := false
+
+    for i := 0; i < len(list); i++ {
+        val = val || thing == list[i]
+    }
+
+    return val
+}
+
+func sortTree(node *Node) *Node{
+    head := &Node{}
+    actual_node := node
+
+    tp := func (node *Node) int8 {
+        return node.Item.TYPE
+    }
+
+    exist := func (node *Node) bool {
+        return node != nil
+    }
+
+    for i := 0; i > -1; {
+        // Need to consider the situation that exist only one node
+        if tp(actual_node) == NUM && exist(actual_node.Right) && extendOR(tp(actual_node.Right), []int8{ADD, SUB, DIV, MUL}){
+            if !exist(actual_node.Left) {
+                *head = *actual_node.Right
+
+            } else {
+                *head.Right = *actual_node.Right
+            }
+
+            actual_node = actual_node.Right
+
+        } else if !exist(actual_node.Right) {
+            break
+        } else if tp(actual_node) != NUM && head == actual_node {
+            continue
+        } else if tp(actual_node) != NUM {
+            if exist(actual_node.Right) && tp(actual_node.Right) == NUM {
+                actual_node = actual_node.Right
+            }
+        }
+
+    }
+
+    return head
+}
+
 
 func main () {
     file := clean(get_file("main.tl"))
 
     node := buildTree(file)
 
-    printTree(node)
+    //printTree(node)
+    cp_node := node
+    head := *sortTree(&cp_node)
+    fmt.Println()
+    printTree(head)
 }
 
